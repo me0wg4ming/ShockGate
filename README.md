@@ -12,7 +12,7 @@ Built for VRChat with full OSC avatar integration via a local client app.
 
 > **[→ shockhub.me0wg4ming.de](https://shockhub.me0wg4ming.de/)**
 
-Register your account on the ShockHub server to get started. No payment, no email verification hassle — just sign up and go.
+Register your account on the ShockHub server to get started. No payment, no paywall, — just sign up and go.
 
 ---
 
