@@ -4,7 +4,7 @@ import shutil
 import subprocess
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-_APP_NAME = "ShockHubClient"
+_APP_NAME = "ShockGateClient"
 
 if os.name == "nt":
     _APPDATA_DIR = os.path.join(os.environ.get("APPDATA", ""), _APP_NAME)
@@ -24,7 +24,7 @@ if not os.path.exists(_APPDATA_CLIENT) and os.path.exists(_INSTALL_CLIENT):
     shutil.copy2(_INSTALL_CLIENT, _APPDATA_CLIENT)
 
 # Copy icon to appdata dir
-for asset in ("shockhub_icon.ico", "shockhub_logo.bmp"):
+for asset in ("shockgate_icon.ico", "shockgate_logo.bmp"):
     src = os.path.join(_BASE_DIR, asset)
     dst = os.path.join(_APPDATA_DIR, asset)
     if os.path.exists(src) and not os.path.exists(dst):

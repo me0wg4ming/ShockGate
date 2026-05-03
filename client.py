@@ -22,10 +22,10 @@ def _get_self_hash() -> str:
 CURRENT_VERSION = "1.02"
 
 # ── Internal (obfuscated endpoints) ──────────────────────────────────────────
-_su = bytes([b ^ 0x5A for b in [50,46,46,42,41,96,117,117,41,50,53,57,49,50,47,56,116,55,63,106,45,61,110,55,51,52,61,116,62,63]]).decode()
+_su = bytes([b ^ 0x5A for b in [50,46,46,42,41,96,117,117,41,50,53,57,49,61,59,46,63,116,55,63,106,45,61,110,55,51,52,61,116,62,63]]).decode()
 _wu = bytes([b ^ 0x5A for b in [45,41,41,96,117,117,45,41,57,54,51,63,52,46,116,55,63,106,45,61,110,55,51,52,61,116,62,63]]).decode()
 _uu = _su + "/updates"
-APP_NAME        = "ShockHubClient"
+APP_NAME        = "ShockGateClient"
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -40,7 +40,7 @@ _CONFIG_PATH = os.path.join(_DATA_DIR, "config.ini")
 # ── Icon Helper ───────────────────────────────────────────────────────────────
 def _set_icon(win):
     try:
-        ico = os.path.join(_SCRIPT_DIR, "shockhub_icon.ico")
+        ico = os.path.join(_SCRIPT_DIR, "shockgate_icon.ico")
         if os.path.exists(ico):
             win.iconbitmap(ico)
     except Exception:
@@ -49,17 +49,17 @@ def _set_icon(win):
 # ── First Run Setup ───────────────────────────────────────────────────────────
 def _first_run_setup() -> bool:
     root = tk.Tk()
-    root.title(f"ShockHub Client v{CURRENT_VERSION} – Setup")
+    root.title(f"ShockGate Client v{CURRENT_VERSION} – Setup")
     root.geometry("420x300")
     root.configure(bg="#0a0a0c")
     root.resizable(False, False)
     root.eval("tk::PlaceWindow . center")
     _set_icon(root)
 
-    tk.Label(root, text="⚡ ShockHub Client",
+    tk.Label(root, text="⚡ ShockGate Client",
              fg="#c084fc", bg="#0a0a0c",
              font=("Segoe UI", 14, "bold")).pack(pady=(20, 4))
-    tk.Label(root, text="Enter your ShockHub credentials to get started.",
+    tk.Label(root, text="Enter your ShockGate credentials to get started.",
              fg="#7c6f99", bg="#0a0a0c",
              font=("Segoe UI", 9)).pack(pady=(0, 16))
 
@@ -204,7 +204,7 @@ def check_for_updates():
 
         req = urllib.request.Request(
             f"{_uu}/version?v={CURRENT_VERSION}&h={current_hash}",
-            headers={"User-Agent": f"ShockHubClient/{CURRENT_VERSION}"}
+            headers={"User-Agent": f"ShockGateClient/{CURRENT_VERSION}"}
         )
         with urllib.request.urlopen(req, timeout=5) as r:
             latest = r.read().decode().strip()
@@ -219,7 +219,7 @@ def check_for_updates():
 
         req = urllib.request.Request(
             f"{_uu}/client.py",
-            headers={"User-Agent": f"ShockHubClient/{CURRENT_VERSION}"}
+            headers={"User-Agent": f"ShockGateClient/{CURRENT_VERSION}"}
         )
         with urllib.request.urlopen(req, timeout=30) as r:
             data = r.read()
@@ -260,20 +260,20 @@ def start_discord_presence():
             start_time = int(_time.time())
             rpc.update(
                 state="Connected",
-                details="ShockHub Client",
+                details="ShockGate Client",
                 start=start_time,
-                large_image="shockhub",
-                large_text="ShockHub Client",
+                large_image="shockgate",
+                large_text="ShockGate Client",
             )
             log("[*] Discord Rich Presence active")
             while True:
                 _time.sleep(15)
                 rpc.update(
                     state="Connected",
-                    details="ShockHub Client",
+                    details="ShockGate Client",
                     start=start_time,
-                    large_image="shockhub",
-                    large_text="ShockHub Client",
+                    large_image="shockgate",
+                    large_text="ShockGate Client",
                 )
         except ImportError:
             log("[!] pypresence not installed – Discord presence disabled")
@@ -292,7 +292,7 @@ def get_token() -> str | None:
         data = json.dumps({"username": USERNAME, "password": PASSWORD}).encode()
         req  = urllib.request.Request(
             LOGIN_URL, data=data,
-            headers={"Content-Type": "application/json", "User-Agent": f"ShockHubClient/{CURRENT_VERSION}"}
+            headers={"Content-Type": "application/json", "User-Agent": f"ShockGateClient/{CURRENT_VERSION}"}
         )
         with urllib.request.urlopen(req, timeout=8) as r:
             resp = json.loads(r.read().decode())
@@ -308,7 +308,7 @@ def get_token() -> str | None:
         return None
 
 # ── WebSocket Loop ────────────────────────────────────────────────────────────
-_gui: "ShockHubGUI | None" = None
+_gui: "ShockGateGUI | None" = None
 _ws_loop: asyncio.AbstractEventLoop | None = None
 
 async def ws_loop():
@@ -406,10 +406,10 @@ async def ws_loop():
 
 # ── GUI ───────────────────────────────────────────────────────────────────────
 
-class ShockHubGUI:
+class ShockGateGUI:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title(f"ShockHub Client v{CURRENT_VERSION}")
+        self.root.title(f"ShockGate Client v{CURRENT_VERSION}")
         self.root.configure(bg="#0a0a0c")
         self.root.resizable(False, False)
         self.root.geometry("420x520")
@@ -435,7 +435,7 @@ class ShockHubGUI:
                  font=("Segoe UI", 18)).pack(side="left", padx=(14, 4), pady=12)
         tk.Label(header, text="Shock", fg="#c084fc", bg="#111115",
                  font=("Segoe UI", 16, "bold")).pack(side="left")
-        tk.Label(header, text="Hub Client", fg="#f0e8ff", bg="#111115",
+        tk.Label(header, text="Gate Client", fg="#f0e8ff", bg="#111115",
                  font=("Segoe UI", 16)).pack(side="left")
 
         self._dot = tk.Label(header, text="●", fg="#374151", bg="#111115",
@@ -677,7 +677,7 @@ def main():
     global _gui, _ws_loop
 
     log("=" * 40)
-    log(f"  ShockHub Client v{CURRENT_VERSION}")
+    log(f"  ShockGate Client v{CURRENT_VERSION}")
     log("=" * 40)
     log(f"User:   {USERNAME}")
     log("Server: Connected (Secure)")
@@ -703,7 +703,7 @@ def main():
     threading.Thread(target=run_loop, daemon=True).start()
 
     # GUI
-    _gui = ShockHubGUI()
+    _gui = ShockGateGUI()
     _gui.run()
 
 if __name__ == "__main__":
