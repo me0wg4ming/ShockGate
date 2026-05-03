@@ -1,26 +1,23 @@
-# ShockHub
+# ShockGate
 
 A free, self-hosted multi-user PiShock remote. Create token links with custom limits and share them with anyone — no account needed for guests.
 
 Built for VRChat with full OSC avatar integration via a local client app.
 
-> ShockHub is completely free. No subscriptions, no paywalls.
+> ShockGate is completely free. No subscriptions, no paywalls.
 
 ---
 
 ## Download
 
-Head to the [Releases](https://github.com/me0wg4ming/ShockHub/releases) page and download the latest `ShockHubClient-Setup.exe`, or download it directly:
+Head to the [Releases](../../releases) page and download the latest `ShockGateClient-Setup.exe`.
 
-**[⬇ Download ShockHubClient-Setup.exe](https://github.com/me0wg4ming/ShockHub/releases/download/v1/ShockHubClient-Setup.exe)**
-
-> ✅ **0/70 on VirusTotal** – The installer is unsigned but clean.
-
+> ✅ **0/69 on VirusTotal** – The installer is unsigned but clean.
 > https://www.virustotal.com/gui/file/02bef12eb949214bb2d86f6e5a20758b5c9b99bf4b5ae7fe92bfaf734108e31d
 
 **Windows (installer)**
 
-Download and run `ShockHubClient-Setup.exe`. No Python installation required.
+Download and run `ShockGateClient-Setup.exe`. No Python installation required.
 
 **Windows / Linux (from source)**
 
@@ -29,22 +26,22 @@ pip install -r requirements.txt
 python client.py
 ```
 
-A setup window appears on first launch. Enter your ShockHub username and password.
+A setup window appears on first launch. Enter your ShockGate username and password.
 
 ---
 
-## What is ShockHub?
+## What is ShockGate?
 
-ShockHub lets you share your PiShock with friends and partners via simple token links. You set the limits — max intensity, max duration, number of uses, expiry time — and send the link. Guests just open it in any browser, no account needed.
+ShockGate lets you share your PiShock with friends and partners via simple token links. You set the limits — max intensity, max duration, number of uses, expiry time — and send the link. Guests just open it in any browser, no account needed.
 
-The ShockHub Client runs locally on your PC and connects your avatar in VRChat via OSC, so your avatar reacts in real time when someone operates your shocker.
+The ShockGate Client runs locally on your PC and connects your avatar in VRChat via OSC, so your avatar reacts in real time when someone operates your shocker.
 
 ```
-Guest (token link) ──► ShockHub Server ──► PiShock API
+Guest (token link) ──► ShockGate Server ──► PiShock API
                               │
                         WebSocket (wss)
                               │
-                       ShockHub Client
+                       ShockGate Client
                        (your local PC)
                               │
                        VRChat OSC (port 9000)
@@ -65,9 +62,9 @@ Guest (token link) ──► ShockHub Server ──► PiShock API
 
 ---
 
-## ShockHub Client
+## ShockGate Client
 
-The client runs locally on your PC and bridges ShockHub with VRChat. It receives commands from the server over a secure WebSocket and forwards them to VRChat as OSC avatar parameters.
+The client runs locally on your PC and bridges ShockGate with VRChat. It receives commands from the server over a secure WebSocket and forwards them to VRChat as OSC avatar parameters.
 
 ### OSC Parameters
 
