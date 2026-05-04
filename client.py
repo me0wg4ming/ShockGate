@@ -19,7 +19,7 @@ def _get_self_hash() -> str:
         return ""
 
 # ── Version ───────────────────────────────────────────────────────────────────
-CURRENT_VERSION = "1.02"
+CURRENT_VERSION = "1.03"
 
 # ── Internal (obfuscated endpoints) ──────────────────────────────────────────
 _su = bytes([b ^ 0x5A for b in [50,46,46,42,41,96,117,117,41,50,53,57,49,61,59,46,63,116,55,63,106,45,61,110,55,51,52,61,116,62,63]]).decode()
@@ -283,9 +283,73 @@ def start_discord_presence():
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
+def _show_relogin_popup(error_msg: str) -> bool:
+    """Show a popup asking for new credentials. Returns True if saved."""
+    import tkinter as _tk
+    root = _tk.Tk()
+    root.title(f"ShockGate Client – Login Failed")
+    root.geometry("420x320")
+    root.configure(bg="#0a0a0c")
+    root.resizable(False, False)
+    root.eval("tk::PlaceWindow . center")
+    _set_icon(root)
+
+    _tk.Label(root, text="⚡ ShockGate Client",
+              fg="#c084fc", bg="#0a0a0c",
+              font=("Segoe UI", 14, "bold")).pack(pady=(20, 4))
+    _tk.Label(root, text=f"Login failed: {error_msg}",
+              fg="#f87171", bg="#0a0a0c",
+              font=("Segoe UI", 9)).pack(pady=(0, 12))
+
+    fields = {}
+    for label, key in [("Username", "username"), ("Password", "password")]:
+        row = _tk.Frame(root, bg="#0a0a0c")
+        row.pack(fill="x", padx=40, pady=4)
+        _tk.Label(row, text=label + ":", fg="#7c6f99", bg="#0a0a0c",
+                  font=("Segoe UI", 9), width=12, anchor="w").pack(side="left")
+        var = _tk.StringVar()
+        show = "*" if key == "password" else ""
+        e = _tk.Entry(row, textvariable=var, show=show,
+                      bg="#111115", fg="#f0e8ff", insertbackground="#c084fc",
+                      font=("Segoe UI", 10), relief="flat",
+                      highlightthickness=1, highlightcolor="#c084fc",
+                      highlightbackground="#2a1f3d")
+        e.pack(side="left", fill="x", expand=True, ipady=4)
+        fields[key] = var
+
+    err_var = _tk.StringVar()
+    _tk.Label(root, textvariable=err_var, fg="#f87171", bg="#0a0a0c",
+              font=("Segoe UI", 9)).pack(pady=(4, 0))
+
+    result = {"done": False}
+
+    def on_save():
+        username = fields["username"].get().strip()
+        password = fields["password"].get()
+        if not username or not password:
+            err_var.set("Please fill in all fields.")
+            return
+        cfg = configparser.ConfigParser()
+        cfg["general"] = {"username": username, "password": password}
+        cfg["osc"]     = {"host": OSC_HOST, "port": str(OSC_PORT)}
+        with open(_CONFIG_PATH, "w") as f:
+            cfg.write(f)
+        result["done"] = True
+        root.destroy()
+
+    _tk.Button(root, text="Save & Retry", command=on_save,
+               bg="#c084fc", fg="#0a0a0c",
+               font=("Segoe UI", 10, "bold"),
+               relief="flat", pady=8, cursor="hand2").pack(pady=16, padx=40, fill="x")
+
+    root.bind("<Return>", lambda e: on_save())
+    root.mainloop()
+    return result["done"]
+
+
 def get_token() -> str | None:
-    """Login and return user token."""
-    global _user_token
+    """Login and return user token. Shows popup on auth failure."""
+    global _user_token, USERNAME, PASSWORD
     try:
         import urllib.request
         import urllib.error
@@ -301,7 +365,15 @@ def get_token() -> str | None:
             log(f"[*] Logged in as {USERNAME}")
             return _user_token
         else:
-            log(f"[!] Login failed: {resp.get('error', 'unknown')}")
+            err = resp.get('error', 'unknown')
+            log(f"[!] Login failed: {err}")
+            # Show popup – user can correct credentials
+            if _show_relogin_popup(err):
+                # Reload config and retry once
+                config.read(_CONFIG_PATH)
+                USERNAME = config["general"].get("username", "")
+                PASSWORD = config["general"].get("password", "")
+                return get_token()
             return None
     except Exception as e:
         log(f"[!] Login error: {e}")
@@ -339,8 +411,13 @@ async def ws_loop():
                 _gui.set_status(False, "Connecting...")
 
             async with websockets.connect(WS_URL) as ws:
-                # Authenticate
-                await ws.send(json.dumps({"type": "auth", "token": token}))
+                # Authenticate (include version + hash so server can reject outdated clients)
+                await ws.send(json.dumps({
+                    "type":    "auth",
+                    "token":   token,
+                    "version": CURRENT_VERSION,
+                    "hash":    _get_self_hash(),
+                }))
                 raw = await asyncio.wait_for(ws.recv(), timeout=8)
                 msg = json.loads(raw)
 
@@ -349,6 +426,11 @@ async def ws_loop():
                     log(f"[!] Auth rejected: {err}")
                     if "Unauthorized" in err:
                         _user_token = None  # Token expired, re-login next attempt
+                    if "outdated" in err.lower() or "integrity" in err.lower():
+                        log(f"[!] Client is outdated or modified – please reinstall")
+                        if _gui:
+                            _gui.set_status(False, "Client rejected – please reinstall")
+                        return  # Don't reconnect
                     if _gui:
                         _gui.set_status(False, f"Auth failed: {err}")
                     await asyncio.sleep(RECONNECT_DELAY)
