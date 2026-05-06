@@ -98,27 +98,78 @@ Tokens are shareable links tied to a specific shocker.
 
 ## Changelog
 
+### v1.04 (2026-05-06)
+- Switched to PiShock Broker WebSocket API (`wss://broker.pishock.com/v2`) — no share codes needed
+- Multi-shocker tokens: one token can now control multiple shockers simultaneously, all fired in a single broker payload
+- Token pause/unpause: tokens can be paused directly without touching the shocker
+- Per-token activity logs now stored on disk (data/logs/) — persistent across server restarts
+- Admin SSE endpoint (`/api/admin/stream`): admin panel receives live push updates instead of polling
+- IP ban system: admin can ban exact IPs, CIDR ranges and wildcards (e.g. `1.2.3.*`)
+- Login history: last 5 unique IPs tracked per user, visible in admin panel
+- Rate limiting on `/api/login`, `/api/register`, `/api/forgot-password`, `/api/admin/login`
+- Security headers on all responses: CSP with nonce, HSTS, X-Frame-Options, X-Content-Type-Options
+- Templates moved to `templates/` folder, served via `render_template` with nonce injection
+- Email verification on registration — unverified accounts deleted after 24 hours
+- Client version + hash check on WebSocket connect — server rejects outdated or modified clients
+- `websocket-client` library replaces `websockets` in the client for synchronous broker communication
+- Shocker globally unique constraint — a shocker can only be registered on one ShockGate account at a time
+
 ### v1.03 (2026-05-04)
 
 **VRChat / OSC Detection**
 - Client now detects whether VRChat is running and whether OSC is enabled, using VRChat's OSCQuery HTTP endpoint
-- Three distinct states shown in the GUI info block: `Connected` (green), `Running – OSC disabled` (orange), `Not running` (red)
-- VRChat status is checked immediately on server connect and then every 5 seconds
-- Heartbeat (`SHOCK/Collar`) is only sent when VRChat OSC is actually reachable
+- Three distinct states shown in the GUI: `Connected` (green), `Running – OSC disabled` (orange), `Not running` (red)
+- VRChat status checked immediately on server connect and then every 5 seconds
+- Heartbeat (`SHOCK/Collar`) only sent when VRChat OSC is actually reachable
 
 **Collar Signal**
-- `SHOCK/Collar = False` is now sent to VRChat when the client exits (X button, Ctrl+C, or fatal crash)
-- `SHOCK/Collar = True` is now sent immediately on successful server authentication, without waiting for the first 5-second heartbeat tick
+- `SHOCK/Collar = False` now sent to VRChat when the client exits cleanly
+- `SHOCK/Collar = True` sent immediately on successful server authentication
 
 **GUI**
-- VRChat status row added to the info block (below Version), with colour-coded dot indicator
-- System log increased in height and now wraps long lines
+- VRChat status row added to info block with colour-coded dot indicator
+- System log increased in height and wraps long lines
 
 **Email (server)**
-- Registration and password reset emails now include a `text/plain` part alongside HTML, fixing SpamAssassin flags (`MIME_HTML_ONLY`, `MPART_ALT_DIFF`) and improving deliverability
+- Registration and password reset emails now include a `text/plain` part alongside HTML, fixing SpamAssassin flags and improving deliverability
+
+### v1.02 (2026-05-03)
+- Add Shocker modal redesigned as a two-step flow: credentials → shocker picker
+- Shockers are now fetched directly from the PiShock API (`GetUserDevices`) — no manual share code entry
+- Multi-select shocker picker: add multiple shockers in one step, each with its own name and share code
+- Share codes shown per shocker in a dropdown; manual code entry field always visible as fallback
+- Shocker names pre-filled from PiShock API, editable before saving
+- Shocker globally unique: a shocker already registered by another user is shown as unavailable
+- Token status badges added to dashboard: ACTIVE, EXPIRED, USED UP, NO SHOCKER
+- Refresh button label changed from icon to text
+- Dashboard rows switched from flexbox to CSS grid for aligned columns
+
+### v1.01 (2026-05-02)
+- Auto-update system: client checks for updates on startup via SHA256 hash comparison
+- URL obfuscation: server and WebSocket URLs XOR-encoded in client binary
+- Settings window no longer shows server URL (hardcoded, not user-configurable)
+- Discord Rich Presence via pypresence
+- Admin panel: Edit User modal (username, email, optional password reset)
+- Admin panel: online status dot per user (green/red), auto-refreshes every 10s
+- Admin panel: per-user activity log (last 100 operates)
+- Token page polls shocker status every 3s as fallback; SSE push on pause/unpause
+- Shocker validation on add uses direct Operate test beep instead of GetShareCodesByOwner
+- `is_invalid` column added to shockers table — marked on positive API confirmation only
+- FAQ section and safety disclaimer added to landing page
+- Rate limiting placeholder (full implementation in v1.04)
 
 ### v1.00 (2026-05-02)
 - Initial release
+- Multi-user accounts with bcrypt passwords and 8-hour session tokens
+- PiShock credentials validated against API on shocker add
+- Token system with intensity/duration/use/expiry limits, all enforced server-side
+- Single-user claim lock with token-specific cookies
+- SSE push for lock state, shocker status, flash events
+- Per-user WebSocket client relay to local ShockGate Client
+- Client: tkinter GUI, OSC relay, auto-update stub, settings window
+- Admin panel: user list, ban/unban, delete, online status via polling
+- Password reset via SMTP email
+- SQLite WAL mode
 
 ---
 
